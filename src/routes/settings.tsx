@@ -28,7 +28,7 @@ export const Route = createFileRoute("/settings")({
       },
     ],
   }),
-  component: SettingsPage;
+  component: SettingsPage,
 });
 
 function Row({ children }: { children: React.ReactNode }) {
