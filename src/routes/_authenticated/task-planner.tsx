@@ -24,7 +24,7 @@ const INITIAL: Task[] = [
   { id: 3, title: "Update team wiki", priority: "Low", deadline: "This week", estimate: "30m" },
 ];
 
-export const Route = createFileRoute("/task-planner")({
+export const Route = createFileRoute("/_authenticated/task-planner")({
   head: () => ({
     meta: [
       { title: "AI Task Planner | WorkFlow AI" },

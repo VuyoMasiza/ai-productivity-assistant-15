@@ -14,7 +14,7 @@ const EXAMPLES = [
   "Best practices for running effective remote retrospectives",
 ];
 
-export const Route = createFileRoute("/research-assistant")({
+export const Route = createFileRoute("/_authenticated/research-assistant")({
   head: () => ({
     meta: [
       { title: "AI Research Assistant | WorkFlow AI" },

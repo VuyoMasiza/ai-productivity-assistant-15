@@ -14,7 +14,7 @@ We agreed to postpone the mobile push notifications feature to next sprint.
 Support tickets are up 12% after the last release; Naledi to investigate root cause and report back Friday.
 Budget for the new analytics tool was approved. Sipho will handle procurement before month end.`;
 
-export const Route = createFileRoute("/meeting-summarizer")({
+export const Route = createFileRoute("/_authenticated/meeting-summarizer")({
   head: () => ({
     meta: [
       { title: "Meeting Notes Summarizer | WorkFlow AI" },
