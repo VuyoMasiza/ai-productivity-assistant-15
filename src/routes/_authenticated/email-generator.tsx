@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useAiTool } from "@/lib/useAiTool";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/email-generator")({
+export const Route = createFileRoute("/_authenticated/email-generator")({
   head: () => ({
     meta: [
       { title: "Smart Email Generator | WorkFlow AI" },
