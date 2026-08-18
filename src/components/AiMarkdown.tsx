@@ -50,7 +50,7 @@ export function AiMarkdown({ text }: { text: string }) {
     const line = raw.trimEnd();
     const bullet = line.match(/^\s*(?:[-*•]|\d+\.)\s+(.*)$/);
     if (bullet) {
-      list.push(bullet[1]);
+      list.push(bullet[1]!);
       return;
     }
     flush(`l${idx}`);
@@ -62,7 +62,7 @@ export function AiMarkdown({ text }: { text: string }) {
           key={idx}
           className="mt-5 mb-1 text-xs font-semibold uppercase tracking-[0.14em] text-primary first:mt-0"
         >
-          {inline(h[2])}
+          {inline(h[2]!)}
         </h3>,
       );
       return;
