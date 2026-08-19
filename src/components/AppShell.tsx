@@ -154,6 +154,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             important information before using it for workplace, financial, legal, HR, or other
             high-impact decisions. Do not enter confidential, sensitive, or personal information.
           </p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Your account uses secure authentication. Do not enter passwords, confidential company
+            information, financial information, or sensitive personal information into AI tools.
+          </p>
         </div>
       </main>
     </div>
