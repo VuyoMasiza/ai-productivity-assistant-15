@@ -84,6 +84,18 @@ const ACTIVITY = [
 ];
 
 function Dashboard() {
+  const [firstName, setFirstName] = useState<string>("");
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const meta = user.user_metadata as { full_name?: string } | undefined;
+      const name = meta?.full_name?.trim() || user.email?.split("@")[0] || "";
+      setFirstName(name.split(" ")[0]);
+    });
+  }, []);
+
   return (
     <AppShell>
       <section className="overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
@@ -91,7 +103,7 @@ function Dashboard() {
           Tuesday · Good afternoon
         </p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
-          Welcome back, Vuyo
+          {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
           One AI platform that helps you write, summarize, research, plan and work more efficiently
