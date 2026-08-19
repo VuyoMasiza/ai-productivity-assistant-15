@@ -92,7 +92,7 @@ function Dashboard() {
       if (!user) return;
       const meta = user.user_metadata as { full_name?: string } | undefined;
       const name = meta?.full_name?.trim() || user.email?.split("@")[0] || "";
-      setFirstName(name.split(" ")[0]);
+      setFirstName(name.split(" ")[0] ?? "");
     });
   }, []);
 
