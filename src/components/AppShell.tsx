@@ -1,6 +1,9 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
+  LogOut,
   LayoutDashboard,
   Mail,
   FileText,
@@ -67,12 +70,47 @@ function NavList({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   );
 }
 
+function UserArea() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
+
+  useEffect(() => {
+    void supabase.auth.getUser().then(({ data }) => {
+      setEmail(data.user?.email ?? null);
+      const meta = data.user?.user_metadata as { full_name?: string } | undefined;
+      setName(meta?.full_name ?? null);
+    });
+  }, []);
+
+  async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    void navigate({ to: "/login", replace: true });
+  }
+
+  return (
+    <div className="mt-auto space-y-3">
+      <div className="rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-3">
+        <p className="truncate text-xs font-semibold">{name ?? "Signed in"}</p>
+        <p className="truncate text-[11px] text-muted-foreground">{email ?? ""}</p>
+        <Button variant="outline" size="sm" className="mt-2 w-full" onClick={signOut}>
+          <LogOut className="size-3.5" /> Log out
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 function SidebarInner({ onNavigate }: { onNavigate?: (() => void) | undefined }) {
   return (
     <div className="flex h-full flex-col p-4">
       <Brand />
       <NavList onNavigate={onNavigate} />
-      <div className="mt-auto rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-3">
+      <UserArea />
+      <div className="mt-3 rounded-xl border border-sidebar-border bg-sidebar-accent/50 p-3">
         <p className="flex items-center gap-2 text-xs font-semibold">
           <ShieldAlert className="size-3.5 text-primary" /> Responsible AI
         </p>
@@ -115,6 +153,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             AI-generated content may contain errors or incomplete information. Review and verify
             important information before using it for workplace, financial, legal, HR, or other
             high-impact decisions. Do not enter confidential, sensitive, or personal information.
+          </p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Your account uses secure authentication. Do not enter passwords, confidential company
+            information, financial information, or sensitive personal information into AI tools.
           </p>
         </div>
       </main>
