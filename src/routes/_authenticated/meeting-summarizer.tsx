@@ -1,12 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { FileText, Sparkle, Eraser } from "lucide-react";
+import { FileText, Sparkle, Eraser, AudioLines } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
 import { AppShell, PageHeader } from "@/components/AppShell";
 import { AiOutput } from "@/components/AiOutput";
+import { AudioInput, type AudioClip } from "@/components/AudioInput";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useAiTool } from "@/lib/useAiTool";
+import { transcribeAudio } from "@/lib/transcribe.functions";
+
 
 const SAMPLE = `Monday standup - product team
 Thabo said the onboarding redesign is 70% done, blocked on copy from marketing. Lerato will send final copy by Thursday.
