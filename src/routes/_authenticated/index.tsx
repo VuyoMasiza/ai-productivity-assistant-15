@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Mail,
@@ -14,6 +15,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
