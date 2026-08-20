@@ -1,8 +1,16 @@
 import { useCallback, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { runAiTool } from "@/lib/ai.functions";
+import { logActivity, type ActivityKind } from "@/lib/activity";
 
 type Tool = "email" | "meeting" | "tasks" | "research" | "chat";
+
+const LOGGED: Partial<Record<Tool, { kind: ActivityKind; label: string }>> = {
+  email: { kind: "email", label: "Email generated" },
+  meeting: { kind: "meeting", label: "Meeting summarized" },
+  research: { kind: "research", label: "Research briefing created" },
+};
+
 
 export function useAiTool(tool: Tool) {
   const run = useServerFn(runAiTool);
