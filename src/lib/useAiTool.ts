@@ -27,6 +27,9 @@ export function useAiTool(tool: Tool) {
       try {
         const res = await run({ data: { tool, prompt } });
         setText(res.text);
+        const entry = LOGGED[tool];
+        if (entry) void logActivity(entry.kind, entry.label);
+
       } catch (e) {
         setError(e instanceof Error ? e.message : "Something went wrong. Please try again.");
       } finally {
