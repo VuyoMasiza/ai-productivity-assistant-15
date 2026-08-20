@@ -16,6 +16,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchActivity, timeAgo, type ActivityRow } from "@/lib/activity";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
