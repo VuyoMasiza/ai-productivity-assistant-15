@@ -189,16 +189,25 @@ function Dashboard() {
             <Clock className="size-4 text-primary" /> Recent activity
           </h2>
           <ul className="mt-4 space-y-3">
-            {ACTIVITY.map(({ text, time, icon: Icon }) => (
-              <li key={text} className="flex items-center gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/60 text-primary">
-                  <Icon className="size-4" />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm">{text}</span>
-                <span className="text-[11px] text-muted-foreground">{time}</span>
+            {recent.map((a) => {
+              const Icon = ICONS[a.kind] ?? Sparkle;
+              return (
+                <li key={a.id} className="flex items-center gap-3">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/60 text-primary">
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm">{a.label}</span>
+                  <span className="text-[11px] text-muted-foreground">{timeAgo(a.created_at)}</span>
+                </li>
+              );
+            })}
+            {!recent.length && (
+              <li className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
+                No activity yet — use an AI tool to get started.
               </li>
-            ))}
+            )}
           </ul>
+
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
