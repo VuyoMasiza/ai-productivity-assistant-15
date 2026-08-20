@@ -16,6 +16,7 @@ import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchActivity, timeAgo, type ActivityRow } from "@/lib/activity";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -69,22 +70,16 @@ const TOOLS = [
   },
 ] as const;
 
-const STATS = [
-  { label: "Tasks completed", value: "8", icon: CheckCircle2 },
-  { label: "AI-assisted tasks", value: "3", icon: Sparkle },
-  { label: "Meetings summarized", value: "2", icon: FileText },
-  { label: "Emails generated", value: "4", icon: Mail },
-];
-
-const ACTIVITY = [
-  { text: "Client follow-up email generated", time: "12 min ago", icon: Mail },
-  { text: "Monday team meeting summarized", time: "1 hr ago", icon: FileText },
-  { text: "Weekly schedule created", time: "3 hrs ago", icon: ListChecks },
-  { text: "Market research summarized", time: "Yesterday", icon: Search },
-];
+const ICONS = {
+  email: Mail,
+  meeting: FileText,
+  task: CheckCircle2,
+  research: Search,
+} as const;
 
 function Dashboard() {
   const [firstName, setFirstName] = useState<string>("");
+  const [activity, setActivity] = useState<ActivityRow[]>([]);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -95,6 +90,37 @@ function Dashboard() {
       setFirstName(name.split(" ")[0] ?? "");
     });
   }, []);
+
+  useEffect(() => {
+    let alive = true;
+    const load = () => void fetchActivity().then((rows) => alive && setActivity(rows));
+    load();
+    const channel = supabase
+      .channel("activity-events")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "activity_events" },
+        load,
+      )
+      .subscribe();
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      alive = false;
+      window.removeEventListener("focus", onFocus);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const count = (kind: ActivityRow["kind"]) => activity.filter((a) => a.kind === kind).length;
+  const STATS = [
+    { label: "Tasks completed", value: count("task"), icon: CheckCircle2 },
+    { label: "AI-assisted tasks", value: count("research"), icon: Sparkle },
+    { label: "Meetings summarized", value: count("meeting"), icon: FileText },
+    { label: "Emails generated", value: count("email"), icon: Mail },
+  ];
+  const recent = activity.slice(0, 5);
+
 
   return (
     <AppShell>
@@ -164,16 +190,25 @@ function Dashboard() {
             <Clock className="size-4 text-primary" /> Recent activity
           </h2>
           <ul className="mt-4 space-y-3">
-            {ACTIVITY.map(({ text, time, icon: Icon }) => (
-              <li key={text} className="flex items-center gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/60 text-primary">
-                  <Icon className="size-4" />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-sm">{text}</span>
-                <span className="text-[11px] text-muted-foreground">{time}</span>
+            {recent.map((a) => {
+              const Icon = ICONS[a.kind] ?? Sparkle;
+              return (
+                <li key={a.id} className="flex items-center gap-3">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-secondary/60 text-primary">
+                    <Icon className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm">{a.label}</span>
+                  <span className="text-[11px] text-muted-foreground">{timeAgo(a.created_at)}</span>
+                </li>
+              );
+            })}
+            {!recent.length && (
+              <li className="rounded-xl border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
+                No activity yet — use an AI tool to get started.
               </li>
-            ))}
+            )}
           </ul>
+
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
