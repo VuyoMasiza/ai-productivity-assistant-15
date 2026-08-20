@@ -157,12 +157,17 @@ function TaskPlanner() {
                   </p>
                 </div>
                 <button
-                  aria-label="Remove task"
-                  onClick={() => setTasks((list) => list.filter((x) => x.id !== t.id))}
+                  aria-label="Mark task complete"
+                  title="Mark complete"
+                  onClick={() => {
+                    setTasks((list) => list.filter((x) => x.id !== t.id));
+                    void logActivity("task", `Task completed: ${t.title}`);
+                  }}
                   className="text-muted-foreground transition-colors hover:text-destructive"
                 >
                   <X className="size-4" />
                 </button>
+
               </li>
             ))}
             {!tasks.length && (
