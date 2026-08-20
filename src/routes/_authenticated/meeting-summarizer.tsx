@@ -39,7 +39,38 @@ export const Route = createFileRoute("/_authenticated/meeting-summarizer")({
 
 function MeetingSummarizer() {
   const [notes, setNotes] = useState("");
+  const [clip, setClip] = useState<AudioClip | null>(null);
+  const [transcribing, setTranscribing] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const transcribe = useServerFn(transcribeAudio);
   const ai = useAiTool("meeting");
+
+  const toBase64 = (blob: Blob) =>
+    new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
+      r.onerror = () => reject(new Error("Could not read the audio file."));
+      r.readAsDataURL(blob);
+    });
+
+  const runTranscribe = async (autoSummarize: boolean) => {
+    if (!clip) return;
+    setTranscribing(true);
+    setAudioError(null);
+    try {
+      const audio = await toBase64(clip.blob);
+      const res = await transcribe({
+        data: { audio, mimeType: clip.blob.type || "audio/webm", filename: clip.name },
+      });
+      const text = notes.trim() ? `${notes.trim()}\n\n${res.text}` : res.text;
+      setNotes(text);
+      if (autoSummarize) await ai.generate(text);
+    } catch (e) {
+      setAudioError(e instanceof Error ? e.message : "Transcription failed. Please try again.");
+    } finally {
+      setTranscribing(false);
+    }
+  };
 
   return (
     <AppShell>
@@ -51,6 +82,22 @@ function MeetingSummarizer() {
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 shadow-[var(--shadow-card)] sm:p-5">
           <div className="space-y-3">
+            <AudioInput clip={clip} onClip={setClip} disabled={transcribing || ai.loading} />
+            {clip && (
+              <div className="flex flex-wrap gap-2">
+                <Button variant="secondary" size="sm" onClick={() => void runTranscribe(false)} disabled={transcribing || ai.loading}>
+                  <AudioLines className="size-3.5" /> {transcribing ? "Transcribing…" : "Transcribe to notes"}
+                </Button>
+                <Button size="sm" onClick={() => void runTranscribe(true)} disabled={transcribing || ai.loading}>
+                  <Sparkle className="size-3.5" /> Transcribe & summarize
+                </Button>
+              </div>
+            )}
+            {audioError && (
+              <p className="rounded-lg border border-destructive/40 bg-destructive/10 p-2.5 text-xs text-destructive">
+                {audioError}
+              </p>
+            )}
             <div className="flex items-center justify-between">
               <Label htmlFor="notes">Meeting notes</Label>
               <button
