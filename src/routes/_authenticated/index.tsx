@@ -69,22 +69,16 @@ const TOOLS = [
   },
 ] as const;
 
-const STATS = [
-  { label: "Tasks completed", value: "8", icon: CheckCircle2 },
-  { label: "AI-assisted tasks", value: "3", icon: Sparkle },
-  { label: "Meetings summarized", value: "2", icon: FileText },
-  { label: "Emails generated", value: "4", icon: Mail },
-];
-
-const ACTIVITY = [
-  { text: "Client follow-up email generated", time: "12 min ago", icon: Mail },
-  { text: "Monday team meeting summarized", time: "1 hr ago", icon: FileText },
-  { text: "Weekly schedule created", time: "3 hrs ago", icon: ListChecks },
-  { text: "Market research summarized", time: "Yesterday", icon: Search },
-];
+const ICONS = {
+  email: Mail,
+  meeting: FileText,
+  task: CheckCircle2,
+  research: Search,
+} as const;
 
 function Dashboard() {
   const [firstName, setFirstName] = useState<string>("");
+  const [activity, setActivity] = useState<ActivityRow[]>([]);
 
   useEffect(() => {
     void supabase.auth.getUser().then(({ data }) => {
@@ -95,6 +89,37 @@ function Dashboard() {
       setFirstName(name.split(" ")[0] ?? "");
     });
   }, []);
+
+  useEffect(() => {
+    let alive = true;
+    const load = () => void fetchActivity().then((rows) => alive && setActivity(rows));
+    load();
+    const channel = supabase
+      .channel("activity-events")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "activity_events" },
+        load,
+      )
+      .subscribe();
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      alive = false;
+      window.removeEventListener("focus", onFocus);
+      void supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const count = (kind: ActivityRow["kind"]) => activity.filter((a) => a.kind === kind).length;
+  const STATS = [
+    { label: "Tasks completed", value: count("task"), icon: CheckCircle2 },
+    { label: "AI-assisted tasks", value: count("research"), icon: Sparkle },
+    { label: "Meetings summarized", value: count("meeting"), icon: FileText },
+    { label: "Emails generated", value: count("email"), icon: Mail },
+  ];
+  const recent = activity.slice(0, 5);
+
 
   return (
     <AppShell>
